@@ -22,6 +22,11 @@ writeShellApplication {
       curl -sL "https://api.github.com/repos/$repo/releases/latest"
     }
 
+    fetch_npm_release() {
+      local package=$1
+      curl -sL "https://registry.npmjs.org/$package"
+    }
+
     hash_url() {
       local url=$1
       local tmp
@@ -70,23 +75,20 @@ writeShellApplication {
     }
 
     update_language_server() {
-      echo "Fetching latest release from github.com/github/copilot-language-server-release"
-      RELEASE=$(fetch_release "github/copilot-language-server-release")
-      VERSION=$(echo "$RELEASE" | jq -r '.tag_name' | sed 's/^v//')
+      echo "Fetching latest release from npm @github/copilot-language-server"
+      RELEASE=$(fetch_npm_release "@github%2Fcopilot-language-server")
+      VERSION=$(echo "$RELEASE" | jq -r '.["dist-tags"].latest')
       echo "Latest version: $VERSION"
 
       CURRENT_VERSION=$(jq -r '."language-server-version"' version.json)
       echo "Flake version: $CURRENT_VERSION"
 
-      echo "Fetching x86_64-linux zip and calculating hash"
-      X64_URL="https://github.com/github/copilot-language-server-release/releases/download/$VERSION/copilot-language-server-linux-x64-$VERSION.zip"
-      X64_HASH=$(hash_url "$X64_URL")
-      echo "x86_64-linux hash: $X64_HASH"
+      TARBALL=$(echo "$RELEASE" | jq -r --arg v "$VERSION" '.versions[$v].dist.tarball')
 
-      echo "Fetching aarch64-linux zip and calculating hash"
-      ARM64_URL="https://github.com/github/copilot-language-server-release/releases/download/$VERSION/copilot-language-server-linux-arm64-$VERSION.zip"
-      ARM64_HASH=$(hash_url "$ARM64_URL")
-      echo "aarch64-linux hash: $ARM64_HASH"
+      echo "Fetching npm tarball and calculating hash"
+      X64_HASH=$(hash_url "$TARBALL")
+      echo "x86_64-linux hash: $X64_HASH"
+      ARM64_HASH=$X64_HASH
 
       CURRENT_X64_HASH=$(jq -r '."language-server-hash-linux-x64"' version.json)
       CURRENT_ARM64_HASH=$(jq -r '."language-server-hash-linux-arm64"' version.json)
