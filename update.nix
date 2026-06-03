@@ -22,11 +22,6 @@ writeShellApplication {
       curl -sL "https://api.github.com/repos/$repo/releases/latest"
     }
 
-    fetch_npm_release() {
-      local package=$1
-      curl -sL "https://registry.npmjs.org/$package"
-    }
-
     hash_url() {
       local url=$1
       local tmp
@@ -75,35 +70,31 @@ writeShellApplication {
     }
 
     update_language_server() {
-      echo "Fetching latest release from npm @github/copilot-language-server"
-      RELEASE=$(fetch_npm_release "@github%2Fcopilot-language-server")
-      VERSION=$(echo "$RELEASE" | jq -r '.["dist-tags"].latest')
+      echo "Fetching latest release from github.com/github/copilot-language-server-release"
+      RELEASE=$(fetch_release "github/copilot-language-server-release")
+      VERSION=$(echo "$RELEASE" | jq -r '.tag_name' | sed 's/^v//')
       echo "Latest version: $VERSION"
 
       CURRENT_VERSION=$(jq -r '."language-server-version"' version.json)
       echo "Flake version: $CURRENT_VERSION"
 
-      TARBALL=$(echo "$RELEASE" | jq -r --arg v "$VERSION" '.versions[$v].dist.tarball')
+      TARBALL="https://github.com/github/copilot-language-server-release/releases/download/$VERSION/copilot-language-server-js-$VERSION.zip"
 
-      echo "Fetching npm tarball and calculating hash"
-      X64_HASH=$(hash_url "$TARBALL")
-      echo "x86_64-linux hash: $X64_HASH"
-      ARM64_HASH=$X64_HASH
+      echo "Fetching js zip and calculating hash"
+      HASH_LINUX=$(hash_url "$TARBALL")
+      echo "linux hash: $HASH_LINUX"
 
-      CURRENT_X64_HASH=$(jq -r '."language-server-hash-linux-x64"' version.json)
-      CURRENT_ARM64_HASH=$(jq -r '."language-server-hash-linux-arm64"' version.json)
+      CURRENT_HASH=$(jq -r '."language-server-hash-linux"' version.json)
 
-      if [ "$VERSION" = "$CURRENT_VERSION" ] && [ "$X64_HASH" = "$CURRENT_X64_HASH" ] && [ "$ARM64_HASH" = "$CURRENT_ARM64_HASH" ]; then
+      if [ "$VERSION" = "$CURRENT_VERSION" ] && [ "$HASH_LINUX" = "$CURRENT_HASH" ]; then
         echo "copilot-language-server version and hashes match version.json, skipping update"
         return
       fi
 
       jq --arg version "$VERSION" \
-         --arg hash_linux_x64 "$X64_HASH" \
-         --arg hash_linux_arm64 "$ARM64_HASH" \
+         --arg hash_linux "$HASH_LINUX" \
          '."language-server-version" = $version |
-          ."language-server-hash-linux-x64" = $hash_linux_x64 |
-          ."language-server-hash-linux-arm64" = $hash_linux_arm64' \
+          ."language-server-hash-linux" = $hash_linux' \
          version.json > version.json.tmp
       mv version.json.tmp version.json
       echo "done updating version.json with new copilot-language-server version and hashes"

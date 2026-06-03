@@ -11,8 +11,8 @@
       packages = lib-nixpkgs.forSystems lib-nixpkgs.linuxOnly (
         { pkgs, ... }:
         let
-          package = pkgs.callPackage ./package.nix { };
-          languageServer = pkgs.callPackage ./package.nix { variant = "language-server"; };
+          package = pkgs.callPackage ./package-cli.nix { };
+          languageServer = pkgs.callPackage ./package-language-server.nix { };
         in
         {
           default = package;
