@@ -12,10 +12,12 @@
         { pkgs, ... }:
         let
           package = pkgs.callPackage ./package.nix { };
+          languageServer = pkgs.callPackage ./package.nix { variant = "language-server"; };
         in
         {
           default = package;
           github-copilot-cli-bin = package;
+          copilot-language-server = languageServer;
           updateScript = pkgs.callPackage ./update.nix { };
         }
       );
