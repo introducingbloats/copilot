@@ -14,12 +14,43 @@ writeShellApplication {
     curl
     nix
   ];
-  text = ''
+    text = ''
     set -euo pipefail
+
+    CURL_OPTS=()
+    if [[ -n "''${GITHUB_TOKEN:-}" ]]; then
+      CURL_OPTS=( -H "Authorization: Bearer ''${GITHUB_TOKEN}" )
+    fi
+
+    github_curl() {
+      local url=$1
+      local tmp
+      local status
+
+      tmp="$(mktemp)"
+      status="$(curl -sS -L "''${CURL_OPTS[@]}" -o "$tmp" -w "%{http_code}" "$url" || echo "__CURL_FAILED__")"
+
+      if [ "$status" = "__CURL_FAILED__" ]; then
+        echo "Error: failed to execute curl request: $url" >&2
+        rm -f "$tmp"
+        exit 1
+      fi
+
+      if [ "$status" != "200" ]; then
+        echo "Error: GitHub API returned HTTP $status for $url" >&2
+        echo "Response body:" >&2
+        cat "$tmp" >&2 || true
+        rm -f "$tmp"
+        exit 1
+      fi
+
+      cat "$tmp"
+      rm -f "$tmp"
+    }
 
     fetch_release() {
       local repo=$1
-      curl -sL "https://api.github.com/repos/$repo/releases/latest"
+      github_curl "https://api.github.com/repos/$repo/releases/latest"
     }
 
     hash_url() {
@@ -34,7 +65,7 @@ writeShellApplication {
     update_cli() {
       echo "Fetching latest release from github.com/github/copilot-cli"
       RELEASE=$(fetch_release "github/copilot-cli")
-      VERSION=$(echo "$RELEASE" | jq -r '.tag_name' | sed 's/^v//')
+      VERSION=$(echo "$RELEASE" | jq -re '.tag_name' | sed 's/^v//')
       echo "Latest version: $VERSION"
 
       CURRENT_VERSION=$(jq -r '.version' version.json)
