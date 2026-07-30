@@ -2,6 +2,6 @@
   "version": "1.0.76",
   "hash-linux-x64": "sha256-VqmN7L0BcylRsPjKqasyvBKTwniXKSwhbqWTcByLKYg=",
   "hash-linux-arm64": "sha256-8p2L/nZx3Nyu0F+O/wdREP3EIQniRYNaHGvilIRg5EE=",
-  "language-server-version": "1.523.3",
-  "language-server-hash-linux": "sha256-DDfYtqlk98LZyW5g/q+fqSeMpjLdUkiF/pXn8QsSlWs="
+  "language-server-version": "1.527.0",
+  "language-server-hash-linux": "sha256-NsA1vOodB/RFmQV/sIckfN+A/mobNF6Ov0a+N4433ys="
 }
