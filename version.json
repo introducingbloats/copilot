@@ -1,7 +1,7 @@
 {
-  "version": "1.0.81",
-  "hash-linux-x64": "sha256-MILEonqmg971Lkg5fAJgbcf4Jn3O8ck5SfP1jeSlzeM=",
-  "hash-linux-arm64": "sha256-8OYh5nk7FOBMD2Uc1G2Bilvwv1TXTJVmyUJHRLQaJ5w=",
+  "version": "1.0.82",
+  "hash-linux-x64": "sha256-N/pnaGqeTtjUbc1qnICrUk3qhA7KoKP37fjQn5Ybl6k=",
+  "hash-linux-arm64": "sha256-hsTHepGx/13XMTy+qfhhaZos3OtGlvOGTz8FhOloTg8=",
   "language-server-version": "1.537.0",
   "language-server-hash-linux": "sha256-7DZ74HvElaUtX3XFVsNdspL5ie2t+/9OtEDSr1z9ecw="
 }
